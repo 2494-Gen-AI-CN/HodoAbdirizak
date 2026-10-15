@@ -2,3 +2,5 @@ pandas
 seaborn
 matplotlib
 requests
+python3-discogs-client
+python-dotenv
