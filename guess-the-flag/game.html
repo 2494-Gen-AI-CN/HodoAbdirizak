@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Guess the Flag</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --page: #f7f8f2;
+      --ink: #263238;
+      --muted: #68777c;
+      --green: #58a700;
+      --green-bright: #78c800;
+      --line: #e2e8dc;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--page);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    main {
+      width: min(720px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: clamp(16px, 4vh, 34px) 0;
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .14em;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(32px, 6vw, 44px);
+      letter-spacing: -.04em;
+    }
+
+    .intro {
+      margin: 10px 0 20px;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .game-status {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 14px;
+      margin: 20px 0 14px;
+    }
+
+    .round-progress {
+      height: 14px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #e7eddf;
+      box-shadow: inset 0 2px 3px #26323812;
+    }
+
+    .progress-fill {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--green-bright), var(--green));
+      transition: width .25s ease;
+    }
+
+    .score {
+      padding: 9px 14px;
+      border-radius: 999px;
+      background: #eaf3dc;
+      color: #477d00;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .06em;
+    }
+
+    .flag-card {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: white;
+      box-shadow: 0 7px 0 #dce5d4, 0 14px 28px #26323812;
+    }
+
+    #flag {
+      display: block;
+      width: min(100%, 500px, 66vh);
+      aspect-ratio: 4 / 3;
+      height: auto;
+      object-fit: contain;
+      margin: 0 auto;
+      border: 1px solid #e1e6ee;
+      border-radius: 4px;
+      box-shadow: 0 4px 12px #172b4d18;
+    }
+
+    .answers {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .answer,
+    .next {
+      min-height: 52px;
+      border: 0;
+      border-radius: 12px;
+      font: inherit;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .15s, transform .15s;
+    }
+
+    .answer {
+      border: 2px solid var(--line);
+      border-bottom-width: 4px;
+      background: white;
+      color: var(--ink);
+    }
+
+    .answer:hover:not(:disabled) {
+      border-color: #9dcc60;
+      background: #f7fced;
+      transform: translateY(-1px);
+    }
+
+    .answer:disabled {
+      cursor: default;
+    }
+
+    .answer.correct {
+      border-color: #8ac43f;
+      background: #edf8df;
+      color: #477d00;
+    }
+
+    .answer.wrong {
+      border-color: #f1b5ae;
+      background: #fdecea;
+      color: #b42318;
+    }
+
+    .feedback {
+      min-height: 24px;
+      margin: 14px 0 10px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 650;
+      line-height: 1.45;
+    }
+
+    .feedback.right {
+      color: #477d00;
+    }
+
+    .feedback.missed {
+      color: #b42318;
+    }
+
+    .next {
+      width: 100%;
+      min-height: 54px;
+      background: var(--green);
+      border-bottom: 5px solid #3c7800;
+      color: white;
+      font-size: 17px;
+    }
+
+    .next:hover:not(:disabled) {
+      background: #4d9700;
+    }
+
+    .next:disabled {
+      background: #aeb8a8;
+      border-bottom-color: #929d8c;
+      cursor: default;
+    }
+
+    @media (max-width: 480px) {
+      main {
+        padding: clamp(12px, 3vh, 28px) 0;
+      }
+
+      .flag-card {
+        padding: 10px;
+      }
+
+      .answers {
+        gap: 8px;
+      }
+
+      .answer {
+        min-height: 54px;
+        font-size: 14px;
+      }
+    }
+
+    @media (max-height: 820px) {
+      main {
+        padding: 10px 0;
+      }
+
+      .eyebrow {
+        margin-bottom: 6px;
+      }
+
+      h1 {
+        font-size: 34px;
+      }
+
+      .intro {
+        margin: 4px 0 8px;
+      }
+
+      .game-status {
+        gap: 10px;
+        margin: 12px 0 8px;
+      }
+
+      .score {
+        padding: 7px 12px;
+      }
+
+      .round-progress {
+        height: 12px;
+      }
+
+      .flag-card {
+        padding: 10px;
+      }
+
+      #flag {
+        width: min(100%, 500px, 58vh);
+      }
+
+      .answers {
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .answer,
+      .next {
+        min-height: 46px;
+      }
+
+      .feedback {
+        min-height: 20px;
+        margin: 8px 0 4px;
+      }
+    }
+
+    @media (max-height: 620px) {
+      main {
+        padding: 6px 0;
+      }
+
+      .eyebrow {
+        margin-bottom: 4px;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+
+      .intro {
+        margin: 2px 0 6px;
+        font-size: 14px;
+      }
+
+      .game-status {
+        gap: 8px;
+        margin: 8px 0 6px;
+      }
+
+      .score {
+        padding: 6px 10px;
+      }
+
+      .flag-card {
+        padding: 8px;
+      }
+
+      #flag {
+        width: min(100%, 500px, 52vh);
+      }
+
+      .answers {
+        gap: 6px;
+        margin-top: 8px;
+      }
+
+      .answer,
+      .next {
+        min-height: 40px;
+        font-size: 14px;
+      }
+
+      .feedback {
+        min-height: 18px;
+        margin: 6px 0 2px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <p class="eyebrow">WORLD FLAGS / QUICK QUIZ</p>
+    <h1>Guess the flag</h1>
+    <p class="intro">Choose the country that matches the flag.</p>
+
+    <div class="game-status">
+      <div class="round-progress" role="progressbar" aria-label="Quiz progress" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+      <div class="score" id="score">SCORE&nbsp; 0 / 10</div>
+    </div>
+    <div class="flag-card"><img id="flag" alt="Flag to identify"></div>
+    <div class="answers" id="answers"></div>
+    <p class="feedback" id="feedback" aria-live="polite">Pick one of the four countries.</p>
+    <button class="next" id="next" disabled>Next flag&nbsp; →</button>
+  </main>
+
+  <script>
+    const roundsPerGame = 10;
+    const flagImage = document.getElementById("flag");
+    const answers = document.getElementById("answers");
+    const feedback = document.getElementById("feedback");
+    const nextButton = document.getElementById("next");
+    const scoreDisplay = document.getElementById("score");
+    const progressBar = document.querySelector(".round-progress");
+    const progressFill = document.getElementById("progress-fill");
+
+    function updateProgress(roundsCompleted) {
+      const percent = (roundsCompleted / roundsPerGame) * 100;
+      progressFill.style.width = percent + "%";
+      progressBar.setAttribute("aria-valuenow", roundsCompleted);
+    }
+    let total = 0;
+    let gameFinished = false;
+    let answered = false;
+
+    async function showQuestion() {
+      answered = false;
+      const response = await fetch("/api/question");
+      const question = await response.json();
+      total = question.total;
+      scoreDisplay.textContent = "SCORE  " + question.score + " / " + roundsPerGame;
+      updateProgress(question.total);
+
+      if (question.finished) {
+        gameFinished = true;
+        feedback.textContent = "Game over! You scored " + question.score + " out of " + roundsPerGame + " points.";
+        feedback.className = "feedback";
+        nextButton.disabled = false;
+        nextButton.textContent = "Play again  →";
+        return;
+      }
+
+      gameFinished = false;
+      flagImage.src = "https://flagcdn.io/flags/4x3/" + question.flag_code + ".svg";
+      flagImage.alt = "Flag to identify";
+      answers.innerHTML = "";
+
+      for (const country of question.choices) {
+        const button = document.createElement("button");
+        button.className = "answer";
+        button.textContent = country;
+        button.addEventListener("click", () => chooseCountry(country, button));
+        answers.appendChild(button);
+      }
+
+      feedback.textContent = "Pick one of the four countries.";
+      feedback.className = "feedback";
+      nextButton.disabled = true;
+      nextButton.textContent = "Next flag  →";
+    }
+
+    async function chooseCountry(country, button) {
+      if (answered) return;
+      answered = true;
+
+      for (const answerButton of answers.children) {
+        answerButton.disabled = true;
+      }
+
+      const response = await fetch("/api/answer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ country: country }),
+      });
+      const result = await response.json();
+      total = result.total;
+      updateProgress(total);
+
+      for (const answerButton of answers.children) {
+        if (answerButton.textContent === result.answer) {
+          answerButton.classList.add("correct");
+        }
+      }
+
+      let resultMessage;
+      if (result.correct) {
+        resultMessage = "Correct! The flag is " + result.answer + ".";
+        feedback.className = "feedback right";
+      } else {
+        button.classList.add("wrong");
+        resultMessage = "The answer was " + result.answer + ".";
+        feedback.className = "feedback missed";
+      }
+
+      scoreDisplay.textContent = "SCORE  " + result.score + " / " + roundsPerGame;
+      nextButton.disabled = false;
+
+      if (result.finished) {
+        gameFinished = true;
+        feedback.textContent = resultMessage + " Game over! You scored " + result.score + " out of " + roundsPerGame + " points.";
+        nextButton.textContent = "Play again  →";
+      } else {
+        feedback.textContent = resultMessage;
+      }
+    }
+
+    async function playAgain() {
+      await fetch("/api/restart", { method: "POST" });
+      total = 0;
+      gameFinished = false;
+      scoreDisplay.textContent = "SCORE  0 / " + roundsPerGame;
+      updateProgress(0);
+      showQuestion();
+    }
+
+    nextButton.addEventListener("click", function () {
+      if (gameFinished) {
+        playAgain();
+      } else {
+        showQuestion();
+      }
+    });
+
+    showQuestion();
+  </script>
+</body>
+
+</html>
