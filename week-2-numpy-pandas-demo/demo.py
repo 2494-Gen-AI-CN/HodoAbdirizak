@@ -31,15 +31,31 @@ top_airports.columns = ["Airport", "Total Flights"]
 
 y_pos = np.arange(len(top_airports["Airport"]))
 
-fig, ax = plt.subplots(figsize=(12, 6))
-
-ax.bar(y_pos, top_airports["Total Flights"], width=0.8, color="#466ee5")
+fig, ax = plt.subplots(figsize=(14, 8))
+bars = ax.bar(
+    y_pos,
+    top_airports["Total Flights"],
+    width=0.8,
+    color="#5b7cff",
+    edgecolor="#1e3a8a"
+)
 
 ax.set_xticks(y_pos)
 ax.set_xticklabels(top_airports["Airport"], rotation=45, ha="right")
 
-ax.set_title("Top 10 Busiest Airports")
+ax.set_title("Top 10 Busiest Airports", fontsize=18, fontweight="bold")
 ax.set_ylabel("Total Flights")
+ax.grid(axis="y", linestyle="--", alpha=0.4)
+
+for bar, value in zip(bars, top_airports["Total Flights"]):
+    ax.text(
+        bar.get_x() + bar.get_width() / 2,
+        value + 1000,
+        f"{value:,.0f}",
+        ha="center",
+        va="bottom",
+        fontsize=9
+    )
 
 plt.tight_layout()
 plt.show()
