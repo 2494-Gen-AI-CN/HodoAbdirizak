@@ -43,3 +43,32 @@ ax.set_ylabel("Total Flights")
 
 plt.tight_layout()
 plt.show()
+
+# Displaying monthly traffic by country
+countries = [country for country in df["STATE_NAME"].unique()]
+choice = input(f"Select a country: {countries}").upper()
+
+# Filter the dataframe for the selected country 
+country_df = df[df["STATE_NAME"].str.upper() == choice]
+
+if country_df.empty:
+    print("Country not found. Please select a country from the list.")
+
+else:
+    monthly_cols = country_df.groupby("MONTH_NUM")["FLT_TOT_1"].sum().sort_index()
+    # Get the month names for the x-axis labels
+    month_names = country_df.drop_duplicates("MONTH_NUM")["MONTH_MON"]
+
+    fig, ax = plt.subplots(figsize=(12, 6))
+    ax.bar(monthly_cols.index, monthly_cols.values)
+
+    ax.set_title(f"Monthly traffic for {choice}")
+
+    ax.set_xticks(monthly_cols.index)
+    ax.set_xticklabels(month_names)
+
+    ax.set_xlabel("Month")
+    ax.set_ylabel("Total Flights")
+
+    plt.tight_layout()
+    plt.show()
