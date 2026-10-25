@@ -148,4 +148,8 @@ busiest_month = monthly_totals.idxmax()
 
 print(f"The busiest month is {busiest_month} with a total of {monthly_totals.max()} flights.")
 
+# Finding the quiestest month
+quiestest_month = monthly_totals.idxmin()
+
+print(f"The quiestest month is {quiestest_month} with a total of {monthly_totals.min()} flights.")
 
