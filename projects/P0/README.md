@@ -1,0 +1,1 @@
+Partner repo: [Thanujann Dayaparan](https://github.com/2494-Gen-AI-CN/ThanujannDayaparan)
