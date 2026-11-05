@@ -19,8 +19,53 @@ Press coverage and the Independent Budget Office have reported that response tim
   <li>Did areas that received extra ambulance capacity improve afterwards?</li>
 </ol>
 
-## Setup
+## Data cleansing
 
-### How to Gain Environment Variables
+The ingestion job validates every record with pandas before it reaches BigQuery.
+A record that fails goes to the `rejects_ems_incident` table with **one reason**
+and the job carries on with the rest.
 
-## Cleaning Rules for Data
+### Rules
+
+The client needs trustworthy response times. A wrong or impossible time would
+distort the answers, so the rules remove records whose timings cannot be relied on. A row that fails several rules is recorded once, under the **first** rule it fails. 
+
+| # | Reject reason | Rejection criteria | Why |
+|---|---|---|---|
+| 1 | `invalid_date` | `INCIDENT_DATETIME` cannot be read as `MM/DD/YYYY hh:mm:ss AM/PM` | Without a date the call cannot be placed in time |
+| 2 | `bad_severity` | `FINAL_SEVERITY_LEVEL_CODE` is missing or not a number | Severity defines the "most serious" calls (code <= 3) |
+| 3 | `duplicate_incident_id` | the `INCIDENT_ID` has already appeared | One row per incident |
+| 4 | `invalid_indicator` | `VALID_DISPATCH_RSPNS_TIME_INDC` or `VALID_INCIDENT_RSPNS_TIME_INDC` is not `Y` | The data owner marks these timings as unreliable |
+| 5 | `missing_time` | dispatch, travel or response seconds is empty | The fact table needs all three measures |
+| 6 | `zero_response` | response seconds is 0 or negative | An ambulance cannot arrive at the instant of the call |
+| 7 | `response_math_mismatch` | dispatch + travel differs from response by more than 1 second | Response is defined as dispatch plus travel, so a mismatch signals an error |
+| 8 | `implausible_duration` | dispatch or response exceeds **4 hours** (14,400 s) | Extreme outliers would distort the results |
+
+### Formatting fixes applied (not rejections)
+
+- Numbers with thousands separators (for example `1,219`) have the comma removed.
+- Dates are parsed with an explicit format, so `01/05/2005` is never ambiguous.
+- Text indicators are trimmed and upper-cased before comparing, so ` y ` counts as `Y`.
+
+### Results
+
+First 1,000 rows (sample): 942 loaded, 58 rejected.
+
+| Reject reason | Rows |
+|---|---|
+| invalid_indicator | 54 |
+| zero_response | 3 |
+| implausible_duration | 1 |
+
+
+## Tests
+
+The cleansing and transform functions in `ingest/cleansing.py` have unit tests
+in `tests/test_cleansing.py`, written with pytest.
+
+### Run the tests
+
+```
+pip install -r requirements.txt
+pytest -v
+```
