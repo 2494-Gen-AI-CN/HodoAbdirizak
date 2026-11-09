@@ -1,5 +1,8 @@
 import os
+from dotenv import load_dotenv
 from google.cloud import bigquery
+
+load_dotenv()
 
 client = bigquery.Client(
     project=os.environ["DESK_GCP_PROJECT"]
