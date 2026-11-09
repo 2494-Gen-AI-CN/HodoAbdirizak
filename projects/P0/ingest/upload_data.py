@@ -1,8 +1,11 @@
 import os
+from dotenv import load_dotenv
 import io
 import pandas as pd
 from google.cloud import bigquery
 from cleansing import add_typed_columns, split_good_and_rejects
+
+load_dotenv()
 
 # Connect to BigQuery
 client = bigquery.Client(
@@ -103,7 +106,7 @@ raw_job_config = bigquery.LoadJobConfig(
     write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE
 )
 
-file_path = "data/EMS_Incident_Dispatch_Data_20261104.csv"
+file_path = "data/ems_incidents.csv"
 
 df = pd.read_csv(file_path, dtype=str)
 
