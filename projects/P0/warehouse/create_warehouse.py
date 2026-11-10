@@ -10,7 +10,8 @@ client = bigquery.Client(
 
 sql_files = [
     "create_dimensions.sql",
-    "create_fact.sql"
+    "create_fact.sql",
+    "business_queries.sql"
 ]
 
 for filename in sql_files:
