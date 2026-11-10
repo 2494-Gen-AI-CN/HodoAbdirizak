@@ -6,18 +6,22 @@ SET data_start  = (SELECT MIN(DATE(PARSE_TIMESTAMP('%m/%d/%Y %I:%M:%S %p', incid
 SET data_end    = (SELECT MAX(DATE(PARSE_TIMESTAMP('%m/%d/%Y %I:%M:%S %p', incident_datetime))) FROM `desk-thanujanndayaparan.ems_dw.ems_incidents_clean`);
 SET pilot_start = DATE_ADD(data_start, INTERVAL DIV(DATE_DIFF(data_end, data_start, DAY), 2) DAY);
 
-CREATE OR REPLACE TABLE `desk-thanujanndayaparan.ems_dw.dim_date` (
-    date_key INT64,
-    full_date DATE,
-    year INT64,
-    quarter INT64,
-    month_num INT64,
-    month_name STRING,
-    day_of_month INT64,
-    day_name STRING,
-    is_weekend BOOL,
-    PRIMARY KEY (date_key) NOT ENFORCED
+CREATE OR REPLACE TABLE `desk-thanujanndayaparan.ems_dw.dim_date` AS (
+    SELECT
+        CAST(FORMAT_DATE('%Y%m%d', full_date) AS INT64) AS date_key,
+        full_date,
+        EXTRACT(YEAR FROM full_date) AS year,
+        EXTRACT(QUARTER FROM full_date) AS quarter,
+        EXTRACT(MONTH FROM full_date) AS month_num,
+        FORMAT_DATE('%B', full_date) AS month_name,
+        EXTRACT(DAY FROM full_date) AS day_of_month,
+        FORMAT_DATE('%A', full_date) AS day_name,
+        EXTRACT(DAYOFWEEK FROM full_date) IN (1, 7) AS is_weekend
+    FROM UNNEST(GENERATE_DATE_ARRAY(data_start, data_end)) AS full_date
 );
+
+ALTER TABLE `desk-thanujanndayaparan.ems_dw.dim_date`
+ADD PRIMARY KEY (date_key) NOT ENFORCED;
 
 CREATE OR REPLACE TABLE `desk-thanujanndayaparan.ems_dw.dim_time` AS (
     SELECT 
@@ -31,18 +35,28 @@ CREATE OR REPLACE TABLE `desk-thanujanndayaparan.ems_dw.dim_time` AS (
         END AS time_bucket
     FROM UNNEST(GENERATE_ARRAY(0,23)) AS hour
 );
-ALTER TABLE ems_dw.dim_time
+ALTER TABLE `desk-thanujanndayaparan.ems_dw.dim_time`
 ADD PRIMARY KEY (hour_key) NOT ENFORCED;
 
-CREATE OR REPLACE TABLE `desk-thanujanndayaparan.ems_dw.dim_call` (
-    call_type_key INT64,
-    initial_call_type STRING,
-    initial_severity_level_code INT64,
-    final_call_type STRING,
-    final_severity_level_code INT64,
-    is_most_serious BOOL,
-    PRIMARY KEY (call_type_key) NOT ENFORCED
+CREATE OR REPLACE TABLE `desk-thanujanndayaparan.ems_dw.dim_call` AS (
+    SELECT
+        ROW_NUMBER() OVER (ORDER BY initial_call_type, initial_severity_level_code, final_call_type, final_severity_level_code) AS call_type_key,
+        initial_call_type,
+        initial_severity_level_code,
+        final_call_type,
+        final_severity_level_code,
+        SAFE_CAST(final_severity_level_code AS INT64) < 3 AS is_most_serious
+    FROM (
+        SELECT DISTINCT
+            initial_call_type,
+            initial_severity_level_code,
+            final_call_type,
+            final_severity_level_code
+        FROM `desk-thanujanndayaparan.ems_dw.ems_incidents_clean`
+    )
 );
+ALTER TABLE `desk-thanujanndayaparan.ems_dw.dim_call`
+ADD PRIMARY KEY (call_type_key) NOT ENFORCED;
 
 -- Location table
 
