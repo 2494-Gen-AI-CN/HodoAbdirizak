@@ -2,5 +2,6 @@ pandas
 pytest
 python-dotenv
 google-cloud-bigquery
+PyYAML
 matplotlib
 geopandas

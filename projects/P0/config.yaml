@@ -1,0 +1,12 @@
+bigquery:
+  project: desk-thanujanndayaparan
+  raw_dataset: ems_raw
+  warehouse_dataset: ems_dw
+
+sources:
+  - name: ems_incidents
+    file: data/ems_incidents.csv
+    format: csv
+    transform: ems_incidents
+    clean_table: ems_incidents_clean
+    reject_table: ems_incidents_rejected

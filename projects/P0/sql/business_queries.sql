@@ -169,7 +169,7 @@ JOIN `desk-thanujanndayaparan.ems_dw.dim_time` AS t on f.hour_key = t.hour_key
 JOIN `desk-thanujanndayaparan.ems_dw.dim_call` AS c on f.call_type_key = c.call_type_key
 WHERE c.is_most_serious = TRUE
 GROUP BY t.hour, d.day_name
-ORDER BY response_time_min DESC
+ORDER BY response_time_min DESC;
 
 -- Question 5: Did the areas that received extra ambulance capacity improve afterwards?
 -- Find the date when the simulated capacity increase begins.

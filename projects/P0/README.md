@@ -19,6 +19,23 @@ Press coverage and the Independent Budget Office have reported that response tim
   <li>Did areas that received extra ambulance capacity improve afterwards?</li>
 </ol>
 
+## Config-driven ingestion
+
+The ingestion job reads [config.yaml](./config.yaml) for the BigQuery project,
+raw and warehouse datasets, and each raw source's file path and format. Run it
+from the project directory with:
+
+```
+python ingest/upload_data.py
+```
+
+To add a raw source, add an entry under `sources` with a unique BigQuery table
+name, a file path relative to the project directory, and `format: csv` or
+`format: json`. JSON sources must be newline-delimited JSON. The job loads each
+source into the configured raw dataset. The EMS cleansing transform is
+opt-in; configure `transform: ems_incidents`, `clean_table`, and `reject_table`
+for a source that uses the EMS schema.
+
 ## Data cleansing
 
 The ingestion job validates every record with pandas before it reaches BigQuery.
