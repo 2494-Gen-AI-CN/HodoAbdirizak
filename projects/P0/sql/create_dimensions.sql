@@ -155,3 +155,19 @@ SELECT
   ROW_NUMBER() OVER (ORDER BY location_key, effective_from) AS capacity_key,
   *
 FROM history;
+
+CREATE OR REPLACE TABLE `desk-thanujanndayaparan.ems_dw.dim_zip` (
+  zip_key INT64 NOT NULL,
+  zipcode STRING,
+  PRIMARY KEY (zip_key) NOT ENFORCED
+) AS
+WITH z AS (
+  SELECT DISTINCT
+    LPAD(CAST(SAFE_CAST(SAFE_CAST(zipcode AS FLOAT64) AS INT64) AS STRING), 5, '0') AS zipcode
+  FROM `desk-thanujanndayaparan.ems_dw.ems_incidents_clean`
+)
+SELECT -1 AS zip_key, 'UNKNOWN' AS zipcode
+UNION ALL
+SELECT ROW_NUMBER() OVER (ORDER BY zipcode), zipcode
+FROM z
+WHERE zipcode IS NOT NULL;

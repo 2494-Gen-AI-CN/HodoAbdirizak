@@ -3,6 +3,4 @@ pytest
 python-dotenv
 google-cloud-bigquery
 matplotlib
-db-dtypes
-pyarrow
-pgeocode
+geopandas
