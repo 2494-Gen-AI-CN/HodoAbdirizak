@@ -19,6 +19,11 @@ Press coverage and the Independent Budget Office have reported that response tim
   <li>Did areas that received extra ambulance capacity improve afterwards?</li>
 </ol>
 
+## Environment Variables
+- Create a Google Cloud account, and verify you are logged in through the console.
+- Create a Google Cloud project and get it's ID.
+- Place your project ID in your copy of the .env file.
+
 ## Config-driven ingestion
 
 The ingestion job reads [config.yaml](./config.yaml) for the BigQuery project,
@@ -50,7 +55,7 @@ distort the answers, so the rules remove records whose timings cannot be relied 
 | # | Reject reason | Rejection criteria | Why |
 |---|---|---|---|
 | 1 | `invalid_date` | `INCIDENT_DATETIME` cannot be read as `MM/DD/YYYY hh:mm:ss AM/PM` | Without a date the call cannot be placed in time |
-| 2 | `bad_severity` | `FINAL_SEVERITY_LEVEL_CODE` is missing or not a number | Severity defines the "most serious" calls (code <= 3) |
+| 2 | `bad_severity` | `FINAL_SEVERITY_LEVEL_CODE` is missing or not a number | Severity defines the "most serious" calls (code < 3) |
 | 3 | `duplicate_incident_id` | the `INCIDENT_ID` has already appeared | One row per incident |
 | 4 | `invalid_indicator` | `VALID_DISPATCH_RSPNS_TIME_INDC` or `VALID_INCIDENT_RSPNS_TIME_INDC` is not `Y` | The data owner marks these timings as unreliable |
 | 5 | `missing_time` | dispatch, travel or response seconds is empty | The fact table needs all three measures |
